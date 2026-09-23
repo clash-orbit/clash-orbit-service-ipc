@@ -271,7 +271,7 @@ fn require_no_unix_core_processes(processes: &str, include_service: bool) -> Res
         let executable = Path::new(process.trim());
         let name = executable.file_name().and_then(|name| name.to_str()).unwrap_or("");
         anyhow::ensure!(
-            !["verge-mihomo", "verge-mihomo-alpha", "verge-mihomo-al"].contains(&name),
+            !["orbit-mihomo", "orbit-mihomo-alpha", "orbit-mihomo-al"].contains(&name),
             "process {name} remains after IPC failure; refusing a second core"
         );
         if include_service && ["clash-orbit-service", "clash-orbit-ser"].contains(&name) {
@@ -340,7 +340,7 @@ mod tests {
         assert!(
             require_no_unix_core_processes(
                 &format!(
-                    "clash-orbit-ser /var/lib/{other}/bin/clash-orbit-service\nverge-mihomo-al /tmp/verge-mihomo-alpha"
+                    "clash-orbit-ser /var/lib/{other}/bin/clash-orbit-service\norbit-mihomo-al /tmp/orbit-mihomo-alpha"
                 ),
                 true
             )
@@ -352,7 +352,7 @@ mod tests {
     #[test]
     fn linux_truncated_alpha_core_blocks_fallback() {
         for ipc_failed in [false, true] {
-            assert!(require_no_unix_core_processes("verge-mihomo-al", ipc_failed).is_err());
+            assert!(require_no_unix_core_processes("orbit-mihomo-al", ipc_failed).is_err());
         }
     }
 
@@ -403,7 +403,7 @@ mod tests {
             current.to_owned(),
             "clash-orbit-service".into(),
             format!("/tmp{other}"),
-            format!("{other}\n/Library/Application Support/clash-orbit-service/cores/verge-mihomo"),
+            format!("{other}\n/Library/Application Support/clash-orbit-service/cores/orbit-mihomo"),
         ] {
             assert!(
                 require_no_unix_core_processes(&residual, true).is_err(),

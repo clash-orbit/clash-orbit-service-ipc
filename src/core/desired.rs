@@ -421,7 +421,7 @@ mod owner_tests {
         std::fs::create_dir_all(&directory)?;
         let config = ClashConfig {
             core_config: CoreConfig {
-                core_path: "/missing/verge-mihomo".into(),
+                core_path: "/missing/orbit-mihomo".into(),
                 core_ipc_path: directory.join("core.sock").to_string_lossy().into_owned(),
                 ..Default::default()
             },

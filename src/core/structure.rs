@@ -306,13 +306,13 @@ pub struct Response<T> {
 impl Default for CoreConfig {
     fn default() -> Self {
         let core_ipc_path = if cfg!(windows) {
-            format!(r"\\.\pipe\verge-mihomo-{}", crate::CHANNEL_IDENTITY.id)
+            format!(r"\\.\pipe\orbit-mihomo-{}", crate::CHANNEL_IDENTITY.id)
         } else if cfg!(feature = "test") {
             "/tmp/clash-orbit-service-ipc-test/mihomo.sock".to_string()
         } else if cfg!(target_os = "macos") {
-            format!("/var/run/{}/users/0/verge-mihomo.sock", crate::SERVICE_SLUG)
+            format!("/var/run/{}/users/0/orbit-mihomo.sock", crate::SERVICE_SLUG)
         } else {
-            format!("/run/{}/users/0/verge-mihomo.sock", crate::SERVICE_SLUG)
+            format!("/run/{}/users/0/orbit-mihomo.sock", crate::SERVICE_SLUG)
         };
         Self {
             core_path: "./clash".to_string(),

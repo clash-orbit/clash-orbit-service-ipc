@@ -770,9 +770,9 @@ mod approved_core_tests {
 
     fn core_name() -> &'static str {
         if cfg!(windows) {
-            "verge-mihomo.exe"
+            "orbit-mihomo.exe"
         } else {
-            "verge-mihomo"
+            "orbit-mihomo"
         }
     }
 
@@ -783,9 +783,9 @@ mod approved_core_tests {
         std::fs::write(&approved, b"approved core")?;
 
         let requested = Path::new(if cfg!(windows) {
-            r"D:\translated software\clash\verge-mihomo.exe"
+            r"D:\translated software\clash\orbit-mihomo.exe"
         } else {
-            "/home/someone/apps/clash/verge-mihomo"
+            "/home/someone/apps/clash/orbit-mihomo"
         });
 
         assert_eq!(
@@ -828,7 +828,7 @@ mod approved_core_tests {
     #[test]
     fn installer_bookkeeping_leftovers_are_never_runnable_cores() -> anyhow::Result<()> {
         let cores = scratch("bookkeeping-leftover")?;
-        for leftover in ["verge-mihomo.exe.next", "verge-mihomo.next", "verge-mihomo.old"] {
+        for leftover in ["orbit-mihomo.exe.next", "orbit-mihomo.next", "orbit-mihomo.old"] {
             std::fs::write(cores.join(leftover), b"leftover")?;
 
             let error = approved_core_copy(&cores, &Path::new("/somewhere").join(leftover)).expect_err("must refuse");
@@ -873,7 +873,7 @@ mod asset_bundle_root_tests {
             .as_nanos();
         let root = std::env::temp_dir().join(format!("bundle-root-{}-{timestamp}", std::process::id()));
         std::fs::create_dir_all(&root)?;
-        let core = root.join("verge-mihomo");
+        let core = root.join("orbit-mihomo");
         std::fs::write(&core, b"core")?;
         let requested = std::fs::canonicalize(&core)?;
         let resolved = ResolvedCore {

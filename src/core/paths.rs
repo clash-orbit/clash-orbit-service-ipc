@@ -210,7 +210,7 @@ pub(crate) fn unix_mihomo_ipc_path(runtime_root: &Path, uid: u32) -> PathBuf {
     runtime_root
         .join("users")
         .join(uid.to_string())
-        .join("verge-mihomo.sock")
+        .join("orbit-mihomo.sock")
 }
 
 pub fn mihomo_ipc_path(identity: &OwnerIdentity) -> String {
@@ -223,7 +223,7 @@ pub fn mihomo_ipc_path(identity: &OwnerIdentity) -> String {
                 } else {
                     crate::CHANNEL_IDENTITY.id
                 };
-                format!(r"\\.\pipe\verge-mihomo-{}-{}", channel_id, owner_key(identity))
+                format!(r"\\.\pipe\orbit-mihomo-{}-{}", channel_id, owner_key(identity))
             }
 
             #[cfg(unix)]
@@ -244,7 +244,7 @@ pub fn mihomo_ipc_path(identity: &OwnerIdentity) -> String {
             } else {
                 crate::CHANNEL_IDENTITY.id
             };
-            format!(r"\\.\pipe\verge-mihomo-{}-{}", channel_id, owner_key(identity))
+            format!(r"\\.\pipe\orbit-mihomo-{}-{}", channel_id, owner_key(identity))
         }
     }
 }
@@ -265,7 +265,7 @@ mod tests {
 
         assert_eq!(
             path,
-            Path::new("/var/run/clash-orbit-service/users/501/verge-mihomo.sock")
+            Path::new("/var/run/clash-orbit-service/users/501/orbit-mihomo.sock")
         );
         assert!(path.as_os_str().as_encoded_bytes().len() < 104);
     }
@@ -293,7 +293,7 @@ mod tests {
             sid: "S-1-5-21-1-2-3-1001".to_owned(),
         });
 
-        assert!(path.starts_with(r"\\.\pipe\verge-mihomo-test-"));
-        assert!(!path.contains("verge-mihomo-production"));
+        assert!(path.starts_with(r"\\.\pipe\orbit-mihomo-test-"));
+        assert!(!path.contains("orbit-mihomo-production"));
     }
 }

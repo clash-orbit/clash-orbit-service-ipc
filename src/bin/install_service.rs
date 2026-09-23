@@ -120,7 +120,7 @@ fn stage_binary(source: &Path, target: &Path) -> Result<PathBuf, Error> {
 }
 
 /// Allowlist for auto-staging; excludes other executables shipped beside the installer.
-const BUNDLED_CORE_NAMES: [&str; 2] = ["verge-mihomo", "verge-mihomo-alpha"];
+const BUNDLED_CORE_NAMES: [&str; 2] = ["orbit-mihomo", "orbit-mihomo-alpha"];
 
 fn core_file_name(stem: &str) -> String {
     if cfg!(windows) {
@@ -1039,7 +1039,7 @@ mod install_core_tests {
         let root = scratch("ensure payload")?;
         let source = root.join("bundled-service");
         let target = root.join("installed-service");
-        let core = root.join(super::core_file_name("verge-mihomo"));
+        let core = root.join(super::core_file_name("orbit-mihomo"));
         std::fs::write(&source, b"service")?;
         std::fs::write(&target, b"service")?;
         std::fs::write(&core, b"core")?;
@@ -1072,8 +1072,8 @@ mod install_core_tests {
     #[test]
     fn combined_install_publishes_both_attested_cores_from_a_writable_directory() -> anyhow::Result<()> {
         let root = scratch("scoop install")?;
-        let stable = root.join(super::core_file_name("verge-mihomo"));
-        let alpha = root.join(super::core_file_name("verge-mihomo-alpha"));
+        let stable = root.join(super::core_file_name("orbit-mihomo"));
+        let alpha = root.join(super::core_file_name("orbit-mihomo-alpha"));
         std::fs::write(&stable, b"stable core")?;
         std::fs::write(&alpha, b"alpha core")?;
         let mut options = combined_options(&[stable, alpha])?;
@@ -1090,8 +1090,8 @@ mod install_core_tests {
     #[test]
     fn combined_install_preflight_rejects_a_missing_or_mismatched_second_core() -> anyhow::Result<()> {
         let root = scratch("preflight")?;
-        let stable = root.join(super::core_file_name("verge-mihomo"));
-        let alpha = root.join(super::core_file_name("verge-mihomo-alpha"));
+        let stable = root.join(super::core_file_name("orbit-mihomo"));
+        let alpha = root.join(super::core_file_name("orbit-mihomo-alpha"));
         std::fs::write(&stable, b"stable core")?;
         std::fs::write(&alpha, b"alpha core")?;
         let mut options = combined_options(&[stable, alpha.clone()])?;
@@ -1109,7 +1109,7 @@ mod install_core_tests {
     #[test]
     fn explicit_core_failure_after_preflight_does_not_accept_the_previous_copy() -> anyhow::Result<()> {
         let root = scratch("changed-after-preflight")?;
-        let source = root.join(super::core_file_name("verge-mihomo"));
+        let source = root.join(super::core_file_name("orbit-mihomo"));
         let previous = root.join("cores").join(source.file_name().unwrap());
         std::fs::write(&source, b"new core")?;
         std::fs::write(&previous, b"old core")?;
@@ -1127,7 +1127,7 @@ mod install_core_tests {
     #[test]
     fn publishes_the_bytes_and_stamps_the_source_modified_time() -> anyhow::Result<()> {
         let root = scratch("stamp")?;
-        let source = root.join("verge-mihomo");
+        let source = root.join("orbit-mihomo");
         std::fs::write(&source, b"core bytes")?;
         std::fs::OpenOptions::new()
             .write(true)
@@ -1154,7 +1154,7 @@ mod install_core_tests {
     #[test]
     fn a_wrong_attestation_publishes_nothing() -> anyhow::Result<()> {
         let root = scratch("attestation")?;
-        let source = root.join("verge-mihomo");
+        let source = root.join("orbit-mihomo");
         std::fs::write(&source, b"core bytes")?;
 
         let error = install_core(
@@ -1177,7 +1177,7 @@ mod install_core_tests {
     #[test]
     fn an_unchanged_core_is_recognized_without_republishing() -> anyhow::Result<()> {
         let root = scratch("idempotent")?;
-        let source = root.join("verge-mihomo");
+        let source = root.join("orbit-mihomo");
         std::fs::write(&source, b"core bytes")?;
         let cores = root.join("cores");
 
@@ -1215,7 +1215,7 @@ mod install_core_tests {
     #[test]
     fn a_core_named_like_a_bookkeeping_leftover_is_refused() -> anyhow::Result<()> {
         let root = scratch("bookkeeping-name")?;
-        for name in ["verge-mihomo.next", "verge-mihomo.old"] {
+        for name in ["orbit-mihomo.next", "orbit-mihomo.old"] {
             let source = root.join(name);
             std::fs::write(&source, b"core bytes")?;
 
@@ -1244,7 +1244,7 @@ mod core_install_argument_tests {
             [
                 "--install-service",
                 "--install-core",
-                "/dl/verge-mihomo",
+                "/dl/orbit-mihomo",
                 "--sha256",
                 &"ab".repeat(32),
             ]
@@ -1280,7 +1280,7 @@ mod core_install_argument_tests {
         let digest = "ab".repeat(32);
         let requests = parse(&[
             "--install-core",
-            "/dl/verge-mihomo",
+            "/dl/orbit-mihomo",
             "--sha256",
             &digest,
             "--install-core",
@@ -1288,7 +1288,7 @@ mod core_install_argument_tests {
         ])?;
 
         assert_eq!(requests.len(), 2);
-        assert_eq!(requests[0].source, std::path::Path::new("/dl/verge-mihomo"));
+        assert_eq!(requests[0].source, std::path::Path::new("/dl/orbit-mihomo"));
         assert_eq!(requests[0].sha256, Some([0xab; 32]));
         assert_eq!(requests[1].sha256, None);
         Ok(())
