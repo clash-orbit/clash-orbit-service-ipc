@@ -2,13 +2,13 @@
 
 use anyhow::Context as _;
 #[cfg(feature = "test")]
-use clash_verge_service_ipc::test_owner_credentials;
-use clash_verge_service_ipc::{
+use clash_orbit_service_ipc::test_owner_credentials;
+use clash_orbit_service_ipc::{
     IpcConfig, MIN_REQUIRED_SERVICE_REVISION, OwnerSessionProof, ProtocolVersion, RuntimeBundle, StartClashRequest,
     get_status, get_version, set_config, start_clash, stop_clash,
 };
 #[cfg(not(feature = "test"))]
-use clash_verge_service_ipc::{OwnerCredentials, OwnerIdentity};
+use clash_orbit_service_ipc::{OwnerCredentials, OwnerIdentity};
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 use tokio::time::sleep;
@@ -172,7 +172,7 @@ async fn wait_ipc_ready() -> anyhow::Result<()> {
 }
 
 #[cfg(feature = "test")]
-fn owner_credentials() -> anyhow::Result<clash_verge_service_ipc::OwnerCredentials> {
+fn owner_credentials() -> anyhow::Result<clash_orbit_service_ipc::OwnerCredentials> {
     test_owner_credentials(&std::env::current_dir()?)
 }
 

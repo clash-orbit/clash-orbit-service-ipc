@@ -4,8 +4,8 @@ mod common;
 
 use anyhow::{Context as _, Result};
 #[cfg(unix)]
-use clash_verge_service_ipc::stop_ipc_server;
-use clash_verge_service_ipc::{PROTOCOL_EPOCH, PROTOCOL_REVISION, VERSION, get_status, get_version};
+use clash_orbit_service_ipc::stop_ipc_server;
+use clash_orbit_service_ipc::{PROTOCOL_EPOCH, PROTOCOL_REVISION, VERSION, get_status, get_version};
 use common::{start_server, stop_server};
 use serial_test::serial;
 
@@ -14,11 +14,11 @@ use serial_test::serial;
 #[serial]
 async fn a_stale_ipc_path_requires_service_reinstallation() -> Result<()> {
     let _ = stop_ipc_server().await;
-    let ipc_path = std::path::Path::new(clash_verge_service_ipc::IPC_PATH);
+    let ipc_path = std::path::Path::new(clash_orbit_service_ipc::IPC_PATH);
     std::fs::create_dir_all(ipc_path.parent().context("IPC path has no parent")?)?;
     std::fs::write(ipc_path, b"")?;
 
-    assert!(clash_verge_service_ipc::is_reinstall_service_needed().await);
+    assert!(clash_orbit_service_ipc::is_reinstall_service_needed().await);
 
     std::fs::remove_file(ipc_path)?;
     Ok(())
@@ -38,7 +38,7 @@ async fn running_server_reports_its_protocol_and_status() -> Result<()> {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt as _;
-        let socket = std::path::Path::new(clash_verge_service_ipc::IPC_PATH);
+        let socket = std::path::Path::new(clash_orbit_service_ipc::IPC_PATH);
         assert_eq!(std::fs::metadata(socket)?.permissions().mode() & 0o777, 0o666);
         assert_eq!(
             std::fs::metadata(socket.parent().context("IPC path has no parent")?)?

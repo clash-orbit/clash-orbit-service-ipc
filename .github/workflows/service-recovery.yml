@@ -34,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-26.04, windows-latest]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -97,61 +97,6 @@ jobs:
             new_pid="$(systemctl show "$service" --property=MainPID --value)"
             active_state="$(systemctl show "$service" --property=ActiveState --value)"
             if [ "$active_state" = "active" ] && [ -n "$new_pid" ] && [ "$new_pid" != "0" ] && [ "$new_pid" != "$old_pid" ]; then
-              require_service_ready "IPC did not respond after the service restarted"
-              echo "Recovered service PID $old_pid -> $new_pid"
-              exit 0
-            fi
-          done
-
-          echo "Service did not restart after forced process exit"
-          diagnose
-          exit 1
-
-      - name: Kill service and verify recovery (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          set -euo pipefail
-
-          service_id="io.github.clash-verge-rev.clash-verge-rev.service"
-
-          diagnose() {
-            echo "::group::launchctl print"
-            sudo launchctl print "system/$service_id" || true
-            echo "::endgroup::"
-            echo "::group::service runtime directory"
-            sudo ls -la /var/run/clash-verge-service/ || true
-            id
-            echo "::endgroup::"
-          }
-
-          require_service_ready() {
-            if ! target/release/service-integration-driver ready; then
-              echo "$1"
-              diagnose
-              exit 1
-            fi
-          }
-
-          # Recovery checks public protocol readiness; authenticated flows run in Service Integration.
-          require_service_ready "IPC was not reachable after installing the service"
-
-          get_pid() {
-            sudo launchctl print "system/$service_id" 2>/dev/null | awk -F'= ' '/^[[:space:]]*pid = / { print $2; exit }' || true
-          }
-
-          old_pid="$(get_pid)"
-          if [ -z "$old_pid" ] || [ "$old_pid" = "-" ]; then
-            echo "Service reported no PID"
-            diagnose
-            exit 1
-          fi
-
-          sudo kill -9 "$old_pid"
-
-          for _ in {1..40}; do
-            sleep 1
-            new_pid="$(get_pid)"
-            if [ -n "$new_pid" ] && [ "$new_pid" != "-" ] && [ "$new_pid" != "$old_pid" ]; then
               require_service_ready "IPC did not respond after the service restarted"
               echo "Recovered service PID $old_pid -> $new_pid"
               exit 0

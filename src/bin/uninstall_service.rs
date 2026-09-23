@@ -15,7 +15,7 @@ use shared::{enter_repair_gate, run_maintenance_if_requested};
 /// Removes approved cores after service deletion. Locked files are left for a later retry.
 #[cfg(any(windows, target_os = "linux", target_os = "macos"))]
 fn remove_installed_cores() {
-    let paths = match clash_verge_service_ipc::service_paths() {
+    let paths = match clash_orbit_service_ipc::service_paths() {
         Ok(paths) => paths,
         Err(error) => {
             eprintln!("Could not locate core directory for cleanup: {error}");
@@ -54,8 +54,8 @@ fn remove_core_firewall_rules(cores: &std::path::Path) {
         for entry in entries.flatten() {
             let path = entry.path();
             let bookkeeping = path.extension().is_some_and(|extension| {
-                extension.eq_ignore_ascii_case(clash_verge_service_ipc::CORE_STAGING_EXTENSION)
-                    || extension.eq_ignore_ascii_case(clash_verge_service_ipc::CORE_DISPLACED_EXTENSION)
+                extension.eq_ignore_ascii_case(clash_orbit_service_ipc::CORE_STAGING_EXTENSION)
+                    || extension.eq_ignore_ascii_case(clash_orbit_service_ipc::CORE_DISPLACED_EXTENSION)
             });
             if !bookkeeping && entry.file_type().is_ok_and(|kind| kind.is_file()) {
                 names.insert(entry.file_name());
@@ -119,13 +119,13 @@ fn main() -> Result<(), Error> {
     let _ = uninstall_old_service();
     let bundle_path = format!(
         "/Library/PrivilegedHelperTools/{}.bundle",
-        clash_verge_service_ipc::MACOS_SERVICE_ID
+        clash_orbit_service_ipc::MACOS_SERVICE_ID
     );
     let plist_file = format!(
         "/Library/LaunchDaemons/{}.plist",
-        clash_verge_service_ipc::MACOS_SERVICE_ID
+        clash_orbit_service_ipc::MACOS_SERVICE_ID
     );
-    let service_id = clash_verge_service_ipc::MACOS_SERVICE_ID;
+    let service_id = clash_orbit_service_ipc::MACOS_SERVICE_ID;
 
     let _ = run_command("launchctl", &["stop", service_id], debug);
     let _ = run_command("launchctl", &["disable", &format!("system/{}", service_id)], debug);
@@ -157,7 +157,7 @@ fn main() -> Result<(), Error> {
     }
     let _gate = enter_repair_gate()?;
     let debug = env::args().any(|arg| arg == "--debug");
-    let service_name = clash_verge_service_ipc::SERVICE_SLUG;
+    let service_name = clash_orbit_service_ipc::SERVICE_SLUG;
 
     let _ = run_command("systemctl", &["stop", &format!("{}.service", service_name)], debug);
     let _ = run_command("systemctl", &["disable", &format!("{}.service", service_name)], debug);
@@ -168,13 +168,13 @@ fn main() -> Result<(), Error> {
     }
 
     let _ = run_command("systemctl", &["daemon-reload"], debug);
-    let target = clash_verge_service_ipc::prepare_service_install_directory()?.join("clash-verge-service");
+    let target = clash_orbit_service_ipc::prepare_service_install_directory()?.join("clash-verge-service");
     if target.exists() {
         std::fs::remove_file(&target)
             .map_err(|error| anyhow::anyhow!("Failed to remove service binary {target:?}: {error}"))?;
     }
     // A fallback publish may have displaced a locked service image aside; best-effort.
-    let _ = std::fs::remove_file(target.with_extension(clash_verge_service_ipc::CORE_DISPLACED_EXTENSION));
+    let _ = std::fs::remove_file(target.with_extension(clash_orbit_service_ipc::CORE_DISPLACED_EXTENSION));
 
     if let Err(error) = shared::repair_active_owner_state() {
         eprintln!("Warning: failed to repair active owner state during uninstall: {error:#}");
@@ -206,13 +206,13 @@ fn main() -> anyhow::Result<()> {
         return Ok(());
     }
     // Resolve before deleting the SCM registration that may supply the recovery path.
-    clash_verge_service_ipc::service_paths()?;
+    clash_orbit_service_ipc::service_paths()?;
     let _gate = enter_repair_gate()?;
     let manager_access = ServiceManagerAccess::CONNECT;
     let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
 
     let service_access = ServiceAccess::QUERY_STATUS | ServiceAccess::STOP | ServiceAccess::DELETE;
-    match service_manager.open_service(clash_verge_service_ipc::WINDOWS_SERVICE_NAME, service_access) {
+    match service_manager.open_service(clash_orbit_service_ipc::WINDOWS_SERVICE_NAME, service_access) {
         Ok(service) => {
             let service_status = service.query_status()?;
             if service_status.current_state != ServiceState::Stopped {
@@ -237,7 +237,7 @@ fn main() -> anyhow::Result<()> {
             poll_until(
                 POLL_ATTEMPTS,
                 || match service_manager.open_service(
-                    clash_verge_service_ipc::WINDOWS_SERVICE_NAME,
+                    clash_orbit_service_ipc::WINDOWS_SERVICE_NAME,
                     ServiceAccess::QUERY_STATUS,
                 ) {
                     Ok(service) => {
@@ -255,13 +255,13 @@ fn main() -> anyhow::Result<()> {
         Err(error) if has_raw_error(&error, ERROR_SERVICE_DOES_NOT_EXIST) => {}
         Err(error) => return Err(error.into()),
     }
-    let target = clash_verge_service_ipc::prepare_service_install_directory()?.join("clash-verge-service.exe");
+    let target = clash_orbit_service_ipc::prepare_service_install_directory()?.join("clash-verge-service.exe");
     if target.exists() {
         std::fs::remove_file(&target)
             .map_err(|error| anyhow::anyhow!("Failed to remove service binary {target:?}: {error}"))?;
     }
     // A fallback publish may have displaced a locked service image aside; best-effort.
-    let _ = std::fs::remove_file(target.with_extension(clash_verge_service_ipc::CORE_DISPLACED_EXTENSION));
+    let _ = std::fs::remove_file(target.with_extension(clash_orbit_service_ipc::CORE_DISPLACED_EXTENSION));
     shared::repair_active_owner_state()?;
     remove_installed_cores();
     println!("Service uninstalled successfully. Resource cleanup warnings can be ignored.");

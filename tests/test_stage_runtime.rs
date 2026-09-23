@@ -3,7 +3,7 @@
 mod common;
 
 use anyhow::{Context as _, Result};
-use clash_verge_service_ipc::{
+use clash_orbit_service_ipc::{
     OwnerCredentials, OwnerSessionProof, RuntimeAsset, RuntimeBundle, StageRejection, StageRuntimeOutcome,
     StartClashRequest, get_status, service_paths, stage_runtime, start_clash, stop_clash, test_owner_credentials,
 };

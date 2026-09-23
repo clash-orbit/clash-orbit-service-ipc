@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-26.04, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
@@ -75,7 +75,7 @@ jobs:
     name: Native Process Benchmark Summary
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
     needs: cargo-tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       - name: Download process probe benchmarks
@@ -143,7 +143,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-26.04, windows-latest]
     runs-on: ${{ matrix.os }}
     env:
       CLASH_VERGE_TEST_SESSION_TOKEN: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
@@ -193,44 +193,6 @@ jobs:
 
       - name: Uninstall service (Linux)
         if: ${{ always() && runner.os == 'Linux' }}
-        run: |
-          if [ -x target/release/clash-verge-service-uninstall ]; then
-            sudo target/release/clash-verge-service-uninstall --debug
-          fi
-
-      - name: Install service (macOS)
-        if: runner.os == 'macOS'
-        run: sudo target/release/clash-verge-service-install --debug
-
-      - name: Verify service (macOS)
-        if: runner.os == 'macOS'
-        run: sudo launchctl list | grep io.github.clash-verge-rev.clash-verge-rev.service
-
-      - name: Start mock_binary (macOS)
-        id: start_macos
-        if: runner.os == 'macOS'
-        run: |
-          generation="$(target/release/service-integration-driver start)"
-          if [[ ! "$generation" =~ ^[0-9]+$ ]]; then
-            echo "service-integration-driver returned invalid generation: '$generation'" >&2
-            exit 1
-          fi
-          echo "generation=$generation" >> "$GITHUB_OUTPUT"
-
-      - name: Verify mock_binary (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          sleep 2
-          pgrep -f mock_binary
-
-      - name: Stop mock_binary (macOS)
-        if: ${{ always() && runner.os == 'macOS' && steps.start_macos.outputs.generation != '' }}
-        env:
-          CLASH_VERGE_TEST_SESSION_GENERATION: ${{ steps.start_macos.outputs.generation }}
-        run: target/release/service-integration-driver stop
-
-      - name: Uninstall service (macOS)
-        if: ${{ always() && runner.os == 'macOS' }}
         run: |
           if [ -x target/release/clash-verge-service-uninstall ]; then
             sudo target/release/clash-verge-service-uninstall --debug

@@ -1,6 +1,6 @@
 .PHONY: help test test_one test_all
 
-RUST_LOG ?= clash_verge_service_ipc=trace,kode_bridge=error
+RUST_LOG ?= clash_orbit_service_ipc=trace,kode_bridge=error
 TEST_NAME ?=
 CARGO ?= cargo
 CARGO_FLAGS ?= --all-features

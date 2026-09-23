@@ -1,7 +1,7 @@
 //! Cross-platform IPC daemon, run standalone or as a Windows service.
 
 use anyhow::Result;
-use clash_verge_service_ipc::{
+use clash_orbit_service_ipc::{
     acquire_service_owner, reconcile_service_startup, restore_desired_state, run_ipc_supervisor_until_shutdown,
 };
 use tracing::{Level, info, warn};
@@ -38,7 +38,7 @@ fn set_secure_process_umask() {
 #[cfg(windows)]
 fn main() -> Result<()> {
     init_logger();
-    if service_dispatcher::start(clash_verge_service_ipc::WINDOWS_SERVICE_NAME, ffi_service_main).is_err() {
+    if service_dispatcher::start(clash_orbit_service_ipc::WINDOWS_SERVICE_NAME, ffi_service_main).is_err() {
         info!("Not running as a service, starting in standalone mode.");
         let rt = tokio::runtime::Runtime::new()?;
         rt.block_on(run_standalone())?;
@@ -72,7 +72,7 @@ fn run_service() -> platform_lib::Result<()> {
     };
 
     let status_handle =
-        service_control_handler::register(clash_verge_service_ipc::WINDOWS_SERVICE_NAME, event_handler)?;
+        service_control_handler::register(clash_orbit_service_ipc::WINDOWS_SERVICE_NAME, event_handler)?;
 
     status_handle.set_service_status(ServiceStatus {
         service_type: ServiceType::OWN_PROCESS,

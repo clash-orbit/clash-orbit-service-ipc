@@ -3,7 +3,7 @@
 use anyhow::Error;
 
 pub(crate) fn repair_active_owner_state() -> Result<(), Error> {
-    if let Some(backup) = clash_verge_service_ipc::repair_active_owner_state()? {
+    if let Some(backup) = clash_orbit_service_ipc::repair_active_owner_state()? {
         eprintln!(
             "Quarantined corrupt active owner state at {backup:?}; the next start will establish a new owner session"
         );
@@ -11,12 +11,12 @@ pub(crate) fn repair_active_owner_state() -> Result<(), Error> {
     Ok(())
 }
 
-pub(crate) fn enter_repair_gate() -> Result<clash_verge_service_ipc::ServiceRepairGate, Error> {
-    match clash_verge_service_ipc::acquire_service_repair_gate()? {
+pub(crate) fn enter_repair_gate() -> Result<clash_orbit_service_ipc::ServiceRepairGate, Error> {
+    match clash_orbit_service_ipc::acquire_service_repair_gate()? {
         Some(gate) => Ok(gate),
         None => {
             eprintln!("Service repair is already in progress");
-            std::process::exit(clash_verge_service_ipc::REPAIR_IN_PROGRESS_EXIT_CODE);
+            std::process::exit(clash_orbit_service_ipc::REPAIR_IN_PROGRESS_EXIT_CODE);
         }
     }
 }
@@ -25,7 +25,7 @@ pub(crate) fn run_maintenance_if_requested() -> Result<bool, Error> {
     if !std::env::args_os().any(|argument| argument == "--cleanup-stale-owners") {
         return Ok(false);
     }
-    let removed = clash_verge_service_ipc::cleanup_stale_owner_state()?;
+    let removed = clash_orbit_service_ipc::cleanup_stale_owner_state()?;
     println!("Removed {} stale owner state directories", removed.len());
     Ok(true)
 }
@@ -95,7 +95,7 @@ pub(crate) fn core_firewall_rule_name(core: &std::path::Path) -> Result<String, 
     let name = core.file_name().context("core path has no file name")?;
     Ok(format!(
         "{} core ({})",
-        clash_verge_service_ipc::SERVICE_DISPLAY_NAME,
+        clash_orbit_service_ipc::SERVICE_DISPLAY_NAME,
         name.to_string_lossy()
     ))
 }

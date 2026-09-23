@@ -2,7 +2,7 @@
 #![allow(dead_code)]
 
 use anyhow::Result;
-use clash_verge_service_ipc::{OwnerCredentials, connect, run_ipc_server, stop_ipc_server, test_owner_credentials};
+use clash_orbit_service_ipc::{OwnerCredentials, connect, run_ipc_server, stop_ipc_server, test_owner_credentials};
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 

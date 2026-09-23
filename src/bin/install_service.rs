@@ -81,9 +81,9 @@ fn stage_binary(source: &Path, target: &Path) -> Result<PathBuf, Error> {
     let parent = target.parent().context("protected target has no parent")?;
     std::fs::create_dir_all(parent).with_context(|| format!("failed to create protected directory {parent:?}"))?;
     let staged = target.with_extension(if cfg!(windows) {
-        format!("exe.{}", clash_verge_service_ipc::CORE_STAGING_EXTENSION)
+        format!("exe.{}", clash_orbit_service_ipc::CORE_STAGING_EXTENSION)
     } else {
-        clash_verge_service_ipc::CORE_STAGING_EXTENSION.to_owned()
+        clash_orbit_service_ipc::CORE_STAGING_EXTENSION.to_owned()
     });
     remove_ordinary_file_if_exists(&staged)?;
 
@@ -140,8 +140,8 @@ fn validate_core_candidate(
         bail!("core candidate is not an ordinary file: {source:?}");
     }
     if Path::new(name).extension().is_some_and(|extension| {
-        extension.eq_ignore_ascii_case(clash_verge_service_ipc::CORE_STAGING_EXTENSION)
-            || extension.eq_ignore_ascii_case(clash_verge_service_ipc::CORE_DISPLACED_EXTENSION)
+        extension.eq_ignore_ascii_case(clash_orbit_service_ipc::CORE_STAGING_EXTENSION)
+            || extension.eq_ignore_ascii_case(clash_orbit_service_ipc::CORE_DISPLACED_EXTENSION)
     }) {
         bail!("core name {name:?} collides with an installer bookkeeping suffix and could never be run");
     }
@@ -222,8 +222,8 @@ fn sweep_core_bookkeeping_leftovers(cores: &Path) {
     for entry in entries.flatten() {
         let path = entry.path();
         let is_leftover = path.extension().is_some_and(|extension| {
-            extension.eq_ignore_ascii_case(clash_verge_service_ipc::CORE_STAGING_EXTENSION)
-                || extension.eq_ignore_ascii_case(clash_verge_service_ipc::CORE_DISPLACED_EXTENSION)
+            extension.eq_ignore_ascii_case(clash_orbit_service_ipc::CORE_STAGING_EXTENSION)
+                || extension.eq_ignore_ascii_case(clash_orbit_service_ipc::CORE_DISPLACED_EXTENSION)
         }) && entry.file_type().is_ok_and(|file_type| file_type.is_file());
         if is_leftover && let Err(error) = std::fs::remove_file(&path) {
             eprintln!("Could not remove leftover {}: {error}", path.display());
@@ -369,7 +369,7 @@ fn prepare_requested_cores(requested: &mut [CoreInstallRequest]) -> Result<(), E
         // The destination name was fixed before resolving links in the source path.
         if request.sha256.is_none() {
             request.source =
-                clash_verge_service_ipc::require_trusted_core_source(&request.source).with_context(|| {
+                clash_orbit_service_ipc::require_trusted_core_source(&request.source).with_context(|| {
                     format!(
                         "core source {:?} sits where unprivileged accounts can write; pass --sha256 <digest \
                      of the downloaded bytes> so the copy can be verified",
@@ -395,7 +395,7 @@ fn install_service_cores(requested: &[CoreInstallRequest]) -> Result<(), Error> 
     }
     // An explicit list replaces bundle discovery; omitted cores are left untouched.
     // Publication is per file, so a later failure does not roll back earlier copies.
-    let cores = clash_verge_service_ipc::prepare_core_install_directory()?;
+    let cores = clash_orbit_service_ipc::prepare_core_install_directory()?;
     sweep_core_bookkeeping_leftovers(&cores);
     let installed = publish_requested_cores(&cores, requested).context(
         "explicit core installation did not finish; earlier cores may already be installed; rerun the installer to complete installation",
@@ -427,7 +427,7 @@ fn install_bundled_cores() -> Result<(), Error> {
         roots.push(bundle.join("Contents").join("MacOS"));
     }
 
-    let cores = clash_verge_service_ipc::prepare_core_install_directory()?;
+    let cores = clash_orbit_service_ipc::prepare_core_install_directory()?;
     sweep_core_bookkeeping_leftovers(&cores);
     let mut seen: Vec<String> = Vec::new();
     for root in roots {
@@ -439,7 +439,7 @@ fn install_bundled_cores() -> Result<(), Error> {
             }
             seen.push(name.clone());
             // Auto-staging requires a protected source; copy the canonical path that passed validation.
-            let source = match clash_verge_service_ipc::require_trusted_core_source(&candidate) {
+            let source = match clash_orbit_service_ipc::require_trusted_core_source(&candidate) {
                 Ok(canonical) => canonical,
                 Err(reason) => {
                     eprintln!(
@@ -535,13 +535,13 @@ fn publish_staged_binary(staged: &Path, target: &Path) -> Result<(), Error> {
 
         let Err(direct_error) = move_over(staged, target) else {
             // A displaced sibling from an earlier fallback publish may still be lying around.
-            let _ = std::fs::remove_file(target.with_extension(clash_verge_service_ipc::CORE_DISPLACED_EXTENSION));
+            let _ = std::fs::remove_file(target.with_extension(clash_orbit_service_ipc::CORE_DISPLACED_EXTENSION));
             return Ok(());
         };
 
         // Windows can rename a running executable but cannot overwrite it.
         // Displace it to a non-runnable name for cleanup on a later install.
-        let displaced = target.with_extension(clash_verge_service_ipc::CORE_DISPLACED_EXTENSION);
+        let displaced = target.with_extension(clash_orbit_service_ipc::CORE_DISPLACED_EXTENSION);
         if move_over(target, &displaced).is_err() {
             return Err(direct_error).with_context(|| format!("failed to publish {staged:?} at {target:?}"));
         }
@@ -574,7 +574,7 @@ fn wait_for_service_ready() -> Result<(), Error> {
         .build()
         .context("failed to create service readiness runtime")?;
     runtime.block_on(async {
-        clash_verge_service_ipc::set_config(Some(clash_verge_service_ipc::IpcConfig {
+        clash_orbit_service_ipc::set_config(Some(clash_orbit_service_ipc::IpcConfig {
             default_timeout: Duration::from_millis(250),
             max_retries: 1,
             retry_delay: Duration::from_millis(25),
@@ -583,12 +583,12 @@ fn wait_for_service_ready() -> Result<(), Error> {
 
         let deadline = Instant::now() + READY_TIMEOUT;
         let result = loop {
-            if let Ok(response) = clash_verge_service_ipc::get_version().await
+            if let Ok(response) = clash_orbit_service_ipc::get_version().await
                 && response.code == 0
                 && response.data.is_some_and(|info| {
                     info.supports_client(
-                        clash_verge_service_ipc::ProtocolVersion::current(),
-                        clash_verge_service_ipc::MIN_REQUIRED_SERVICE_REVISION,
+                        clash_orbit_service_ipc::ProtocolVersion::current(),
+                        clash_orbit_service_ipc::MIN_REQUIRED_SERVICE_REVISION,
                     )
                 })
             {
@@ -602,14 +602,14 @@ fn wait_for_service_ready() -> Result<(), Error> {
             tokio::time::sleep(READY_INTERVAL).await;
         };
 
-        clash_verge_service_ipc::set_config(None).await;
+        clash_orbit_service_ipc::set_config(None).await;
         result
     })
 }
 
 #[cfg(target_os = "macos")]
 fn launchd_service_target() -> String {
-    format!("system/{}", clash_verge_service_ipc::MACOS_SERVICE_ID)
+    format!("system/{}", clash_orbit_service_ipc::MACOS_SERVICE_ID)
 }
 
 #[cfg(any(target_os = "macos", test))]
@@ -711,7 +711,7 @@ fn set_macos_permissions(path: &Path, mode: u32) -> Result<(), Error> {
 
 #[cfg(target_os = "macos")]
 fn main() -> Result<(), Error> {
-    if clash_verge_service_ipc::management::prepare_install_if_requested()? {
+    if clash_orbit_service_ipc::management::prepare_install_if_requested()? {
         return Ok(());
     }
     if run_maintenance_if_requested()? {
@@ -728,7 +728,7 @@ fn main() -> Result<(), Error> {
     let service_binary_path = bundled_service_binary()?;
 
     let bundle_path = PathBuf::from("/Library/PrivilegedHelperTools")
-        .join(format!("{}.bundle", clash_verge_service_ipc::MACOS_SERVICE_ID));
+        .join(format!("{}.bundle", clash_orbit_service_ipc::MACOS_SERVICE_ID));
     let contents_path = bundle_path.join("Contents");
     let macos_path = contents_path.join("MacOS");
 
@@ -744,19 +744,19 @@ fn main() -> Result<(), Error> {
         std::fs::create_dir(&plist_dir).map_err(|e| anyhow::anyhow!("Failed to create plist directory: {}", e))?;
     }
 
-    let plist_file = plist_dir.join(format!("{}.plist", clash_verge_service_ipc::MACOS_SERVICE_ID));
+    let plist_file = plist_dir.join(format!("{}.plist", clash_orbit_service_ipc::MACOS_SERVICE_ID));
 
     let launchd_plist_content = format!(
         include_str!("../../resources/launchd.plist.tmpl"),
         group_name = resolve_service_group_name()?,
-        service_id = clash_verge_service_ipc::MACOS_SERVICE_ID,
-        app_bundle_id = clash_verge_service_ipc::MACOS_APP_BUNDLE_ID,
+        service_id = clash_orbit_service_ipc::MACOS_SERVICE_ID,
+        app_bundle_id = clash_orbit_service_ipc::MACOS_APP_BUNDLE_ID,
         service_binary = target_binary_path.to_string_lossy(),
     );
     let info_plist_content = format!(
         include_str!("../../resources/info.plist.tmpl"),
-        display_name = clash_verge_service_ipc::SERVICE_DISPLAY_NAME,
-        service_id = clash_verge_service_ipc::MACOS_SERVICE_ID,
+        display_name = clash_orbit_service_ipc::SERVICE_DISPLAY_NAME,
+        service_id = clash_orbit_service_ipc::MACOS_SERVICE_ID,
     );
     let plist_path = plist_file.to_string_lossy().into_owned();
 
@@ -785,7 +785,7 @@ fn main() -> Result<(), Error> {
     run_command("launchctl", &["bootstrap", "system", &plist_path], debug)?;
     run_command(
         "launchctl",
-        &["start", clash_verge_service_ipc::MACOS_SERVICE_ID],
+        &["start", clash_orbit_service_ipc::MACOS_SERVICE_ID],
         debug,
     )?;
     wait_for_service_ready()?;
@@ -797,7 +797,7 @@ fn main() -> Result<(), Error> {
 
 #[cfg(target_os = "linux")]
 fn main() -> Result<(), Error> {
-    if clash_verge_service_ipc::management::prepare_install_if_requested()? {
+    if clash_orbit_service_ipc::management::prepare_install_if_requested()? {
         return Ok(());
     }
     if run_maintenance_if_requested()? {
@@ -811,10 +811,10 @@ fn main() -> Result<(), Error> {
     }
     let debug = options.debug;
     let source = bundled_service_binary()?;
-    let install_dir = clash_verge_service_ipc::prepare_service_install_directory()?;
+    let install_dir = clash_orbit_service_ipc::prepare_service_install_directory()?;
     let target = install_dir.join("clash-verge-service");
     let staged = stage_binary(&source, &target)?;
-    let unit_name = format!("{}.service", clash_verge_service_ipc::SERVICE_SLUG);
+    let unit_name = format!("{}.service", clash_orbit_service_ipc::SERVICE_SLUG);
     let unit_path = PathBuf::from("/etc/systemd/system").join(&unit_name);
 
     let _ = run_command("systemctl", &["stop", &unit_name], debug);
@@ -827,7 +827,7 @@ fn main() -> Result<(), Error> {
         include_str!("../../resources/systemd_service_unit.tmpl"),
         exec_start = target.to_string_lossy(),
         group = resolve_service_group_name()?,
-        runtime_directory = clash_verge_service_ipc::SERVICE_SLUG,
+        runtime_directory = clash_orbit_service_ipc::SERVICE_SLUG,
     );
 
     let mut unit_file =
@@ -857,7 +857,7 @@ fn main() -> anyhow::Result<()> {
     use std::ffi::{OsStr, OsString};
     use std::{thread, time::Duration};
 
-    if clash_verge_service_ipc::management::prepare_install_if_requested()? {
+    if clash_orbit_service_ipc::management::prepare_install_if_requested()? {
         return Ok(());
     }
     if run_maintenance_if_requested()? {
@@ -876,7 +876,7 @@ fn main() -> anyhow::Result<()> {
         );
     }
     let source = bundled_service_binary()?;
-    let install_dir = clash_verge_service_ipc::prepare_service_install_directory()?;
+    let install_dir = clash_orbit_service_ipc::prepare_service_install_directory()?;
     let target = install_dir.join("clash-verge-service.exe");
     let staged = stage_binary(&source, &target)?;
 
@@ -888,8 +888,8 @@ fn main() -> anyhow::Result<()> {
         ServiceStartType::AutoStart
     };
     let service_info = ServiceInfo {
-        name: OsString::from(clash_verge_service_ipc::WINDOWS_SERVICE_NAME),
-        display_name: OsString::from(clash_verge_service_ipc::SERVICE_DISPLAY_NAME),
+        name: OsString::from(clash_orbit_service_ipc::WINDOWS_SERVICE_NAME),
+        display_name: OsString::from(clash_orbit_service_ipc::SERVICE_DISPLAY_NAME),
         service_type: ServiceType::OWN_PROCESS,
         start_type,
         error_control: ServiceErrorControl::Normal,
@@ -905,7 +905,7 @@ fn main() -> anyhow::Result<()> {
         | ServiceAccess::START
         | ServiceAccess::STOP
         | ServiceAccess::CHANGE_CONFIG;
-    match service_manager.open_service(clash_verge_service_ipc::WINDOWS_SERVICE_NAME, service_access) {
+    match service_manager.open_service(clash_orbit_service_ipc::WINDOWS_SERVICE_NAME, service_access) {
         Ok(service) => {
             const ERROR_SERVICE_NOT_ACTIVE: i32 = 1062;
             let status = service.query_status()?;
@@ -921,7 +921,7 @@ fn main() -> anyhow::Result<()> {
                     &source,
                     &target,
                     &options.cores,
-                    &clash_verge_service_ipc::service_paths()?.core_dir(),
+                    &clash_orbit_service_ipc::service_paths()?.core_dir(),
                 )?
             {
                 service.start(&Vec::<&OsStr>::new())?;

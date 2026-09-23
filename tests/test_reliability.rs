@@ -3,7 +3,7 @@
 mod common;
 
 use anyhow::{Context as _, Result};
-use clash_verge_service_ipc::{
+use clash_orbit_service_ipc::{
     CoreWatchdogTestConfig, OwnerSessionProof, RuntimeBundle, ServiceLifecycleState, StartClashRequest, connect,
     get_status, run_ipc_supervisor_until_shutdown, service_lifecycle_state, set_core_watchdog_config_for_tests,
     start_clash, stop_clash, stop_ipc_server,
@@ -39,7 +39,7 @@ async fn ipc_supervisor_restarts_a_stopped_listener() -> Result<()> {
 #[serial]
 async fn sidecar_probe_does_not_inherit_long_client_retries() -> Result<()> {
     let _ = stop_ipc_server().await;
-    clash_verge_service_ipc::set_config(Some(clash_verge_service_ipc::IpcConfig {
+    clash_orbit_service_ipc::set_config(Some(clash_orbit_service_ipc::IpcConfig {
         default_timeout: Duration::from_secs(1),
         max_retries: 20,
         retry_delay: Duration::from_millis(500),
@@ -47,10 +47,10 @@ async fn sidecar_probe_does_not_inherit_long_client_retries() -> Result<()> {
     .await;
     let result = tokio::time::timeout(
         Duration::from_secs(2),
-        clash_verge_service_ipc::execution::check_sidecar_available(),
+        clash_orbit_service_ipc::execution::check_sidecar_available(),
     )
     .await;
-    clash_verge_service_ipc::set_config(None).await;
+    clash_orbit_service_ipc::set_config(None).await;
     assert!(
         result.is_ok(),
         "Sidecar inspection inherited the client's long retry budget"
@@ -63,7 +63,7 @@ async fn sidecar_probe_does_not_inherit_long_client_retries() -> Result<()> {
 #[serial]
 async fn a_healthy_service_owner_prevents_a_second_instance() -> Result<()> {
     let _ = stop_ipc_server().await;
-    let owner = clash_verge_service_ipc::acquire_service_owner()
+    let owner = clash_orbit_service_ipc::acquire_service_owner()
         .await?
         .context("current process did not acquire the service owner lock")?;
     let server = start_server().await?;

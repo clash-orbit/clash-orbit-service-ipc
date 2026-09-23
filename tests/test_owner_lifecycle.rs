@@ -3,7 +3,7 @@
 mod common;
 
 use anyhow::{Context as _, Result};
-use clash_verge_service_ipc::{
+use clash_orbit_service_ipc::{
     IpcCommand, OwnerCredentials, OwnerSessionProof, RuntimeBundle, ServiceErrorCode, StartClashRequest,
     StartClashResult, connect, get_status, start_clash, stop_clash,
 };
@@ -88,11 +88,11 @@ async fn restarting_an_owner_invalidates_the_previous_session() -> Result<()> {
 async fn a_new_owner_takes_over_and_the_previous_owner_becomes_inactive() -> Result<()> {
     let server = start_server().await?;
     let root = std::env::temp_dir();
-    let owner_a = clash_verge_service_ipc::test_owner_credentials_for_uid(
+    let owner_a = clash_orbit_service_ipc::test_owner_credentials_for_uid(
         &root.join(format!("service-ipc-owner-a-{}", std::process::id())),
         91_001,
     )?;
-    let owner_b = clash_verge_service_ipc::test_owner_credentials_for_uid(
+    let owner_b = clash_orbit_service_ipc::test_owner_credentials_for_uid(
         &root.join(format!("service-ipc-owner-b-{}", std::process::id())),
         91_002,
     )?;
@@ -101,8 +101,8 @@ async fn a_new_owner_takes_over_and_the_previous_owner_becomes_inactive() -> Res
     let (_, session_b) = start(&owner_b, &"44".repeat(32)).await?;
 
     assert!(!get_status(&owner_a).await?.data.context("no status")?.is_active);
-    assert!(clash_verge_service_ipc::inspect_installation(&[]).await?.core_busy);
-    assert!(clash_verge_service_ipc::execution::reserve_sidecar().await.is_err());
+    assert!(clash_orbit_service_ipc::inspect_installation(&[]).await?.core_busy);
+    assert!(clash_orbit_service_ipc::execution::reserve_sidecar().await.is_err());
     assert!(get_status(&owner_b).await?.data.context("no status")?.is_active);
     assert_eq!(
         stop_clash(&owner_a, &session_a).await?.code,
@@ -116,11 +116,11 @@ async fn a_new_owner_takes_over_and_the_previous_owner_becomes_inactive() -> Res
 #[tokio::test]
 #[serial]
 async fn installation_query_reports_global_occupancy_and_guards_handoff() -> Result<()> {
-    use clash_verge_service_ipc::execution::reserve_sidecar;
-    use clash_verge_service_ipc::{CoreAvailability, CoreRequirement, inspect_installation};
+    use clash_orbit_service_ipc::execution::reserve_sidecar;
+    use clash_orbit_service_ipc::{CoreAvailability, CoreRequirement, inspect_installation};
     let server = start_server().await?;
     let name = format!("verge-mihomo-alpha{}", std::env::consts::EXE_SUFFIX);
-    let directory = clash_verge_service_ipc::service_paths()?.core_dir();
+    let directory = clash_orbit_service_ipc::service_paths()?.core_dir();
     std::fs::create_dir_all(&directory)?;
     let core = directory.join(&name);
     let previous = std::fs::read(&core).ok();

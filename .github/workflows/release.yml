@@ -16,7 +16,7 @@ permissions:
 jobs:
   prepare:
     name: Prepare Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       tag: ${{ steps.release.outputs.tag }}
       version: ${{ steps.release.outputs.version }}
@@ -58,7 +58,7 @@ jobs:
 
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "asset_prefix=clash-verge-service-ipc-$tag" >> "$GITHUB_OUTPUT"
+          echo "asset_prefix=clash-orbit-service-ipc-$tag" >> "$GITHUB_OUTPUT"
           echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
 
   build:
@@ -74,18 +74,14 @@ jobs:
             target: i686-pc-windows-msvc
           - os: windows-latest
             target: aarch64-pc-windows-msvc
-          - os: ubuntu-latest
+          - os: ubuntu-26.04
             target: x86_64-unknown-linux-gnu
-          - os: ubuntu-latest
+          - os: ubuntu-26.04
             target: i686-unknown-linux-gnu
-          - os: ubuntu-latest
+          - os: ubuntu-26.04
             target: aarch64-unknown-linux-gnu
-          - os: ubuntu-latest
+          - os: ubuntu-26.04
             target: armv7-unknown-linux-gnueabihf
-          - os: macos-latest
-            target: aarch64-apple-darwin
-          - os: macos-15-intel
-            target: x86_64-apple-darwin
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
@@ -95,66 +91,25 @@ jobs:
           fetch-depth: 0
 
       - name: Install Rust
-        if: matrix.os != 'ubuntu-latest'
+        if: matrix.os != 'ubuntu-26.04'
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
 
       - name: Add Rust target
-        if: matrix.os != 'ubuntu-latest'
+        if: matrix.os != 'ubuntu-26.04'
         run: rustup target add ${{ matrix.target }}
 
-      - name: Setup macOS cross compilation
-        if: startsWith(matrix.os, 'macos')
-        shell: bash
-        run: |
-          echo "CARGO_TARGET_$(echo ${{ matrix.target }} | tr '[:lower:]' '[:upper:]' | tr '-' '_')_LINKER=clang" >> "$GITHUB_ENV"
-          echo "CC_$(echo ${{ matrix.target }} | tr '-' '_')=clang" >> "$GITHUB_ENV"
-          echo "CXX_$(echo ${{ matrix.target }} | tr '-' '_')=clang++" >> "$GITHUB_ENV"
-
-          if [ "${{ matrix.target }}" = "x86_64-apple-darwin" ]; then
-            echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> "$GITHUB_ENV"
-            echo "MACOSX_DEPLOYMENT_TARGET=10.15" >> "$GITHUB_ENV"
-          elif [ "${{ matrix.target }}" = "aarch64-apple-darwin" ]; then
-            echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> "$GITHUB_ENV"
-            echo "MACOSX_DEPLOYMENT_TARGET=11.0" >> "$GITHUB_ENV"
-          fi
-
       - name: Build
-        if: matrix.os != 'ubuntu-latest'
+        if: matrix.os != 'ubuntu-26.04'
         run: cargo build --release --target ${{ matrix.target }} --features "standalone client" --verbose
 
       - name: Build Linux
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-26.04'
         uses: ./.github/build-for-linux
         with:
           target: ${{ matrix.target }}
           features: standalone,client
-
-      - name: CodeSign macOS binaries
-        if: startsWith(matrix.os, 'macos')
-        shell: bash
-        run: |
-          echo "${{ secrets.APPLE_CERTIFICATE }}" | base64 --decode > cert.p12
-          security create-keychain -p github-actions github-actions.keychain
-          security default-keychain -s github-actions.keychain
-          security unlock-keychain -p github-actions github-actions.keychain
-          security import cert.p12 -k github-actions.keychain -P "${{ secrets.APPLE_CERTIFICATE_PASSWORD }}" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k github-actions github-actions.keychain
-
-          for bin in clash-verge-service clash-verge-service-install clash-verge-service-uninstall; do
-            file "target/${{ matrix.target }}/release/$bin"
-            lipo -info "target/${{ matrix.target }}/release/$bin" || true
-            codesign --force \
-              -s "${{ secrets.APPLE_SIGNING_IDENTITY }}" \
-              --keychain github-actions.keychain \
-              --options runtime \
-              --timestamp \
-              --identifier "io.github.clash-verge-rev.clash-verge-rev-service-ipc" \
-              "target/${{ matrix.target }}/release/$bin"
-            codesign -dvv "target/${{ matrix.target }}/release/$bin"
-            codesign -d --entitlements /dev/stdout "target/${{ matrix.target }}/release/$bin"
-          done
 
       - name: Package Windows binaries
         if: runner.os == 'Windows'
@@ -193,7 +148,7 @@ jobs:
   release:
     name: Publish Release
     needs: [prepare, build]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Download release artifacts
         uses: actions/download-artifact@v8
@@ -213,7 +168,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.prepare.outputs.tag }}
-          name: clash-verge-service-ipc ${{ needs.prepare.outputs.tag }}
+          name: clash-orbit-service-ipc ${{ needs.prepare.outputs.tag }}
           prerelease: ${{ needs.prepare.outputs.prerelease }}
           generate_release_notes: true
           fail_on_unmatched_files: true
