@@ -25,9 +25,9 @@ use std::time::{Duration, Instant};
 
 fn bundled_service_binary() -> Result<PathBuf, Error> {
     let source = std::env::current_exe()?.with_file_name(if cfg!(windows) {
-        "clash-verge-service.exe"
+        "clash-orbit-service.exe"
     } else {
-        "clash-verge-service"
+        "clash-orbit-service"
     });
     let metadata = std::fs::symlink_metadata(&source)
         .with_context(|| format!("failed to inspect bundled service binary {source:?}"))?;
@@ -734,7 +734,7 @@ fn main() -> Result<(), Error> {
 
     std::fs::create_dir_all(&macos_path).map_err(|e| anyhow::anyhow!("Failed to create bundle directories: {}", e))?;
 
-    let target_binary_path = macos_path.join("clash-verge-service");
+    let target_binary_path = macos_path.join("clash-orbit-service");
     let staged = stage_binary(&service_binary_path, &target_binary_path)?;
 
     let info_plist_path = contents_path.join("Info.plist");
@@ -812,7 +812,7 @@ fn main() -> Result<(), Error> {
     let debug = options.debug;
     let source = bundled_service_binary()?;
     let install_dir = clash_orbit_service_ipc::prepare_service_install_directory()?;
-    let target = install_dir.join("clash-verge-service");
+    let target = install_dir.join("clash-orbit-service");
     let staged = stage_binary(&source, &target)?;
     let unit_name = format!("{}.service", clash_orbit_service_ipc::SERVICE_SLUG);
     let unit_path = PathBuf::from("/etc/systemd/system").join(&unit_name);
@@ -877,7 +877,7 @@ fn main() -> anyhow::Result<()> {
     }
     let source = bundled_service_binary()?;
     let install_dir = clash_orbit_service_ipc::prepare_service_install_directory()?;
-    let target = install_dir.join("clash-verge-service.exe");
+    let target = install_dir.join("clash-orbit-service.exe");
     let staged = stage_binary(&source, &target)?;
 
     let manager_access = ServiceManagerAccess::CONNECT | ServiceManagerAccess::CREATE_SERVICE;
@@ -971,7 +971,7 @@ fn main() -> anyhow::Result<()> {
     let start_access = ServiceAccess::CHANGE_CONFIG | ServiceAccess::START;
     let service = service_manager.create_service(&service_info, start_access)?;
 
-    service.set_description("Clash Verge Service helps to launch Clash Core")?;
+    service.set_description("Clash Orbit Service helps to launch Clash Core")?;
     configure_windows_service_recovery(&service)?;
     service.start(&Vec::<&OsStr>::new())?;
     wait_for_service_ready()?;
@@ -1329,7 +1329,7 @@ mod tests {
     fn missing_launchd_service_skips_bootout() {
         let plan = classify_launchd_service_probe(
             Some(113),
-            "Could not find service \"io.github.clash-verge-rev.clash-verge-rev.service\" in domain for system",
+            "Could not find service \"io.github.clash-orbit.clash-orbit.service\" in domain for system",
         )
         .unwrap();
 

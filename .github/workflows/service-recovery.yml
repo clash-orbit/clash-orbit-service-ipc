@@ -49,14 +49,14 @@ jobs:
 
       - name: Install service (Unix)
         if: runner.os != 'Windows'
-        run: sudo target/release/clash-verge-service-install --debug
+        run: sudo target/release/clash-orbit-service-install --debug
 
       - name: Kill service and verify recovery (Linux)
         if: runner.os == 'Linux'
         run: |
           set -euo pipefail
 
-          service="clash-verge-service.service"
+          service="clash-orbit-service.service"
 
           # Keep diagnostics reachable when the initial readiness probe fails.
           diagnose() {
@@ -67,7 +67,7 @@ jobs:
             sudo journalctl -u "$service" --no-pager --lines=200 || true
             echo "::endgroup::"
             echo "::group::service runtime directory"
-            sudo ls -la /run/clash-verge-service/ || true
+            sudo ls -la /run/clash-orbit-service/ || true
             id
             echo "::endgroup::"
           }
@@ -111,14 +111,14 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          & "$env:GITHUB_WORKSPACE\target\release\clash-verge-service-install.exe"
+          & "$env:GITHUB_WORKSPACE\target\release\clash-orbit-service-install.exe"
           Start-Sleep -Seconds 2
 
       - name: Kill service and verify recovery (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $serviceName = "clash_verge_service"
+          $serviceName = "clash_orbit_service"
           $driver = "$env:GITHUB_WORKSPACE\target\release\service-integration-driver.exe"
 
           function Show-Diagnostics {
@@ -169,15 +169,15 @@ jobs:
       - name: Uninstall service (Unix)
         if: always() && runner.os != 'Windows'
         run: |
-          if [ -x target/release/clash-verge-service-uninstall ]; then
-            sudo target/release/clash-verge-service-uninstall --debug
+          if [ -x target/release/clash-orbit-service-uninstall ]; then
+            sudo target/release/clash-orbit-service-uninstall --debug
           fi
 
       - name: Uninstall service (Windows)
         if: always() && runner.os == 'Windows'
         shell: pwsh
         run: |
-          $service = Get-Service -Name "clash_verge_service" -ErrorAction SilentlyContinue
+          $service = Get-Service -Name "clash_orbit_service" -ErrorAction SilentlyContinue
           if ($null -ne $service) {
-            & "$env:GITHUB_WORKSPACE\target\release\clash-verge-service-uninstall.exe"
+            & "$env:GITHUB_WORKSPACE\target\release\clash-orbit-service-uninstall.exe"
           }

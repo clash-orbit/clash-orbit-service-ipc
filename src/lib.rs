@@ -43,32 +43,32 @@ pub use core::{CoreWatchdogTestConfig, set_core_watchdog_config_for_tests};
 pub use client::*;
 
 #[cfg(all(target_os = "macos", not(feature = "test"), not(feature = "development-channel")))]
-pub static IPC_PATH: &str = "/var/run/clash-verge-service/service.sock";
+pub static IPC_PATH: &str = "/var/run/clash-orbit-service/service.sock";
 #[cfg(all(target_os = "macos", not(feature = "test"), feature = "development-channel"))]
-pub static IPC_PATH: &str = "/var/run/clash-verge-service-dev/service.sock";
+pub static IPC_PATH: &str = "/var/run/clash-orbit-service-dev/service.sock";
 #[cfg(all(
     unix,
     not(target_os = "macos"),
     not(feature = "test"),
     not(feature = "development-channel")
 ))]
-pub static IPC_PATH: &str = "/run/clash-verge-service/service.sock";
+pub static IPC_PATH: &str = "/run/clash-orbit-service/service.sock";
 #[cfg(all(
     unix,
     not(target_os = "macos"),
     not(feature = "test"),
     feature = "development-channel"
 ))]
-pub static IPC_PATH: &str = "/run/clash-verge-service-dev/service.sock";
+pub static IPC_PATH: &str = "/run/clash-orbit-service-dev/service.sock";
 #[cfg(all(windows, not(feature = "test"), not(feature = "development-channel")))]
-pub static IPC_PATH: &str = r"\\.\pipe\clash-verge-service";
+pub static IPC_PATH: &str = r"\\.\pipe\clash-orbit-service";
 #[cfg(all(windows, not(feature = "test"), feature = "development-channel"))]
-pub static IPC_PATH: &str = r"\\.\pipe\clash-verge-service-dev";
+pub static IPC_PATH: &str = r"\\.\pipe\clash-orbit-service-dev";
 
 #[cfg(all(feature = "test", unix))]
-pub static IPC_PATH: &str = "/tmp/clash-verge-service-ipc-test/service.sock";
+pub static IPC_PATH: &str = "/tmp/clash-orbit-service-ipc-test/service.sock";
 #[cfg(all(feature = "test", windows))]
-pub static IPC_PATH: &str = r"\\.\pipe\clash-verge-service-test";
+pub static IPC_PATH: &str = r"\\.\pipe\clash-orbit-service-test";
 
 #[cfg(any(feature = "standalone", feature = "client"))]
 pub static IPC_AUTH_EXPECT: &str =

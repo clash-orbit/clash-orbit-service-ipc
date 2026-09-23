@@ -56,7 +56,7 @@ pub(super) fn require_no_core_process(include_service: bool) -> Result<()> {
         if ["verge-mihomo", "verge-mihomo-alpha"]
             .iter()
             .any(|core| name.eq_ignore_ascii_case(&format!("{core}.exe")))
-            || (include_service && name.eq_ignore_ascii_case("clash-verge-service.exe"))
+            || (include_service && name.eq_ignore_ascii_case("clash-orbit-service.exe"))
         {
             bail!(
                 "process {name} (PID {}) is still running; refusing a second core",

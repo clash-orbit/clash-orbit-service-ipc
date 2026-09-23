@@ -104,9 +104,9 @@ fn coordination_path() -> Result<PathBuf> {
     };
     // Both channels may keep idle helpers, but core execution is shared.
     #[cfg(feature = "test")]
-    let name = "clash-verge-service.core-execution-test.lock";
+    let name = "clash-orbit-service.core-execution-test.lock";
     #[cfg(not(feature = "test"))]
-    let name = "clash-verge-service.core-execution.lock";
+    let name = "clash-orbit-service.core-execution.lock";
     Ok(root.join(name))
 }
 
@@ -248,20 +248,20 @@ fn require_no_unix_core_processes(processes: &str, include_service: bool) -> Res
         .join(format!(
             "{}.bundle",
             if cfg!(feature = "development-channel") {
-                "io.github.clash-verge-rev.clash-verge-rev.service"
+                "io.github.clash-orbit.clash-orbit.service"
             } else {
-                "io.github.clash-verge-rev.clash-verge-rev.dev.service"
+                "io.github.clash-orbit.clash-orbit.dev.service"
             }
         ))
-        .join("Contents/MacOS/clash-verge-service");
+        .join("Contents/MacOS/clash-orbit-service");
     #[cfg(target_os = "linux")]
     let other_helper = PathBuf::from("/var/lib")
         .join(if cfg!(feature = "development-channel") {
-            "clash-verge-service"
+            "clash-orbit-service"
         } else {
-            "clash-verge-service-dev"
+            "clash-orbit-service-dev"
         })
-        .join("bin/clash-verge-service");
+        .join("bin/clash-orbit-service");
     for process in processes.lines() {
         #[cfg(target_os = "linux")]
         let (process, arguments) = process
@@ -274,7 +274,7 @@ fn require_no_unix_core_processes(processes: &str, include_service: bool) -> Res
             !["verge-mihomo", "verge-mihomo-alpha", "verge-mihomo-al"].contains(&name),
             "process {name} remains after IPC failure; refusing a second core"
         );
-        if include_service && ["clash-verge-service", "clash-verge-ser"].contains(&name) {
+        if include_service && ["clash-orbit-service", "clash-orbit-ser"].contains(&name) {
             // Linux comm is truncated; argv[0] retains the installed helper's channel path.
             #[cfg(target_os = "linux")]
             let executable = Path::new(arguments.split_whitespace().next().unwrap_or(""));
@@ -320,27 +320,27 @@ mod tests {
     #[test]
     fn linux_idle_helper_from_other_channel_does_not_block_fallback() -> Result<()> {
         let other = if cfg!(feature = "development-channel") {
-            "clash-verge-service"
+            "clash-orbit-service"
         } else {
-            "clash-verge-service-dev"
+            "clash-orbit-service-dev"
         };
         let current = crate::SERVICE_SLUG;
         require_no_unix_core_processes(
-            &format!("clash-verge-ser /var/lib/{other}/bin/clash-verge-service"),
+            &format!("clash-orbit-ser /var/lib/{other}/bin/clash-orbit-service"),
             true,
         )?;
         assert!(
             require_no_unix_core_processes(
-                &format!("clash-verge-ser /var/lib/{current}/bin/clash-verge-service"),
+                &format!("clash-orbit-ser /var/lib/{current}/bin/clash-orbit-service"),
                 true
             )
             .is_err()
         );
-        assert!(require_no_unix_core_processes("clash-verge-ser /tmp/clash-verge-service", true).is_err());
+        assert!(require_no_unix_core_processes("clash-orbit-ser /tmp/clash-orbit-service", true).is_err());
         assert!(
             require_no_unix_core_processes(
                 &format!(
-                    "clash-verge-ser /var/lib/{other}/bin/clash-verge-service\nverge-mihomo-al /tmp/verge-mihomo-alpha"
+                    "clash-orbit-ser /var/lib/{other}/bin/clash-orbit-service\nverge-mihomo-al /tmp/verge-mihomo-alpha"
                 ),
                 true
             )
@@ -391,8 +391,8 @@ mod tests {
     #[cfg(all(target_os = "macos", feature = "client"))]
     #[test]
     fn an_idle_helper_from_the_other_channel_does_not_block_fallback() -> Result<()> {
-        let production = "/Library/PrivilegedHelperTools/io.github.clash-verge-rev.clash-verge-rev.service.bundle/Contents/MacOS/clash-verge-service";
-        let development = "/Library/PrivilegedHelperTools/io.github.clash-verge-rev.clash-verge-rev.dev.service.bundle/Contents/MacOS/clash-verge-service";
+        let production = "/Library/PrivilegedHelperTools/io.github.clash-orbit.clash-orbit.service.bundle/Contents/MacOS/clash-orbit-service";
+        let development = "/Library/PrivilegedHelperTools/io.github.clash-orbit.clash-orbit.dev.service.bundle/Contents/MacOS/clash-orbit-service";
         let (current, other) = if cfg!(feature = "development-channel") {
             (development, production)
         } else {
@@ -401,9 +401,9 @@ mod tests {
         require_no_unix_core_processes(other, true)?;
         for residual in [
             current.to_owned(),
-            "clash-verge-service".into(),
+            "clash-orbit-service".into(),
             format!("/tmp{other}"),
-            format!("{other}\n/Library/Application Support/clash-verge-service/cores/verge-mihomo"),
+            format!("{other}\n/Library/Application Support/clash-orbit-service/cores/verge-mihomo"),
         ] {
             assert!(
                 require_no_unix_core_processes(&residual, true).is_err(),

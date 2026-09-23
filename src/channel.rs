@@ -11,21 +11,21 @@ pub struct ChannelIdentity {
 #[cfg(not(feature = "development-channel"))]
 pub const CHANNEL_IDENTITY: ChannelIdentity = ChannelIdentity {
     id: "production",
-    service_slug: "clash-verge-service",
-    windows_service_name: "clash_verge_service",
-    service_display_name: "Clash Verge Service",
-    macos_app_bundle_id: "io.github.clash-verge-rev.clash-verge-rev",
-    macos_service_id: "io.github.clash-verge-rev.clash-verge-rev.service",
+    service_slug: "clash-orbit-service",
+    windows_service_name: "clash_orbit_service",
+    service_display_name: "Clash Orbit Service",
+    macos_app_bundle_id: "io.github.clash-orbit.clash-orbit",
+    macos_service_id: "io.github.clash-orbit.clash-orbit.service",
 };
 
 #[cfg(feature = "development-channel")]
 pub const CHANNEL_IDENTITY: ChannelIdentity = ChannelIdentity {
     id: "development",
-    service_slug: "clash-verge-service-dev",
-    windows_service_name: "clash_verge_service_dev",
-    service_display_name: "Clash Verge Development Service",
-    macos_app_bundle_id: "io.github.clash-verge-rev.clash-verge-rev.dev",
-    macos_service_id: "io.github.clash-verge-rev.clash-verge-rev.dev.service",
+    service_slug: "clash-orbit-service-dev",
+    windows_service_name: "clash_orbit_service_dev",
+    service_display_name: "Clash Orbit Development Service",
+    macos_app_bundle_id: "io.github.clash-orbit.clash-orbit.dev",
+    macos_service_id: "io.github.clash-orbit.clash-orbit.dev.service",
 };
 
 pub const SERVICE_SLUG: &str = CHANNEL_IDENTITY.service_slug;
@@ -41,8 +41,8 @@ mod tests {
     #[test]
     fn compiled_channel_has_a_self_consistent_identity() {
         assert!(!CHANNEL_IDENTITY.id.is_empty());
-        assert!(CHANNEL_IDENTITY.service_slug.starts_with("clash-verge-service"));
-        assert!(CHANNEL_IDENTITY.windows_service_name.starts_with("clash_verge_service"));
+        assert!(CHANNEL_IDENTITY.service_slug.starts_with("clash-orbit-service"));
+        assert!(CHANNEL_IDENTITY.windows_service_name.starts_with("clash_orbit_service"));
         assert!(
             CHANNEL_IDENTITY
                 .macos_service_id

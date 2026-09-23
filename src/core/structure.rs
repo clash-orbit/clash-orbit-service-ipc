@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest as _, Sha256};
 
-pub const OWNER_TOKEN_FILE_NAME: &str = ".clash-verge-service-owner-token";
-pub const SERVICE_PROTOCOL_HEADER: &str = "X-Clash-Verge-Service-Protocol";
+pub const OWNER_TOKEN_FILE_NAME: &str = ".clash-orbit-service-owner-token";
+pub const SERVICE_PROTOCOL_HEADER: &str = "X-Clash-Orbit-Service-Protocol";
 pub const SESSION_TOKEN_HEX_LEN: usize = 64;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -308,7 +308,7 @@ impl Default for CoreConfig {
         let core_ipc_path = if cfg!(windows) {
             format!(r"\\.\pipe\verge-mihomo-{}", crate::CHANNEL_IDENTITY.id)
         } else if cfg!(feature = "test") {
-            "/tmp/clash-verge-service-ipc-test/mihomo.sock".to_string()
+            "/tmp/clash-orbit-service-ipc-test/mihomo.sock".to_string()
         } else if cfg!(target_os = "macos") {
             format!("/var/run/{}/users/0/verge-mihomo.sock", crate::SERVICE_SLUG)
         } else {

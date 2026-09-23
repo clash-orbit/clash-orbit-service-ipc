@@ -155,7 +155,7 @@ fn init_logger() {
 
 async fn run_standalone() -> Result<()> {
     let pid = std::process::id();
-    info!("Clash Verge Service - Standalone Mode");
+    info!("Clash Orbit Service - Standalone Mode");
     info!("Current process PID: {}", pid);
 
     let Some(_owner_guard) = acquire_service_owner().await? else {

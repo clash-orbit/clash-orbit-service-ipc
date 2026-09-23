@@ -178,13 +178,13 @@ fn runtime_dir() -> PathBuf {
     Path::new(crate::IPC_PATH)
         .parent()
         .map(Path::to_path_buf)
-        .unwrap_or_else(|| PathBuf::from("/run/clash-verge-service"))
+        .unwrap_or_else(|| PathBuf::from("/run/clash-orbit-service"))
 }
 
 fn persistent_state_dir() -> std::io::Result<PathBuf> {
     #[cfg(feature = "test")]
     {
-        Ok(std::env::temp_dir().join("clash-verge-service-ipc-test-state"))
+        Ok(std::env::temp_dir().join("clash-orbit-service-ipc-test-state"))
     }
 
     // A root launchd daemon needs stable system state independent of unreliable HOME/XDG values
@@ -229,7 +229,7 @@ pub fn mihomo_ipc_path(identity: &OwnerIdentity) -> String {
             #[cfg(unix)]
             {
                 #[cfg(feature = "test")]
-                let runtime_root = PathBuf::from("/tmp/clash-verge-service-ipc-test");
+                let runtime_root = PathBuf::from("/tmp/clash-orbit-service-ipc-test");
                 #[cfg(not(feature = "test"))]
                 let runtime_root = runtime_dir();
 
@@ -261,11 +261,11 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn unix_mihomo_ipc_path_is_owner_scoped_and_below_sun_path_limit() {
-        let path = unix_mihomo_ipc_path(Path::new("/var/run/clash-verge-service"), 501);
+        let path = unix_mihomo_ipc_path(Path::new("/var/run/clash-orbit-service"), 501);
 
         assert_eq!(
             path,
-            Path::new("/var/run/clash-verge-service/users/501/verge-mihomo.sock")
+            Path::new("/var/run/clash-orbit-service/users/501/verge-mihomo.sock")
         );
         assert!(path.as_os_str().as_encoded_bytes().len() < 104);
     }

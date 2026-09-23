@@ -118,9 +118,9 @@ jobs:
           $asset = "${{ needs.prepare.outputs.asset_prefix }}-${{ matrix.target }}"
           New-Item -ItemType Directory -Path package -Force | Out-Null
           New-Item -ItemType Directory -Path dist -Force | Out-Null
-          Copy-Item "target/${{ matrix.target }}/release/clash-verge-service.exe" package/
-          Copy-Item "target/${{ matrix.target }}/release/clash-verge-service-install.exe" package/
-          Copy-Item "target/${{ matrix.target }}/release/clash-verge-service-uninstall.exe" package/
+          Copy-Item "target/${{ matrix.target }}/release/clash-orbit-service.exe" package/
+          Copy-Item "target/${{ matrix.target }}/release/clash-orbit-service-install.exe" package/
+          Copy-Item "target/${{ matrix.target }}/release/clash-orbit-service-uninstall.exe" package/
           Copy-Item LICENSE package/
           Compress-Archive -Path package/* -DestinationPath "dist/$asset.zip" -Force
 
@@ -130,9 +130,9 @@ jobs:
         run: |
           asset="${{ needs.prepare.outputs.asset_prefix }}-${{ matrix.target }}"
           mkdir -p package dist
-          cp "target/${{ matrix.target }}/release/clash-verge-service" package/
-          cp "target/${{ matrix.target }}/release/clash-verge-service-install" package/
-          cp "target/${{ matrix.target }}/release/clash-verge-service-uninstall" package/
+          cp "target/${{ matrix.target }}/release/clash-orbit-service" package/
+          cp "target/${{ matrix.target }}/release/clash-orbit-service-install" package/
+          cp "target/${{ matrix.target }}/release/clash-orbit-service-uninstall" package/
           cp LICENSE package/
           tar -czf "dist/$asset.tar.gz" -C package .
 
