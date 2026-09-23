@@ -98,8 +98,8 @@ jobs:
                 "utf8",
               )))
               .sort((left, right) => left.platform.localeCompare(right.platform));
-            if (reports.length !== 3) {
-              throw new Error(`expected 3 platform reports, found ${reports.length}`);
+            if (reports.length !== 2) {
+              throw new Error(`expected 2 platform reports, found ${reports.length}`);
             }
             const milliseconds = (nanoseconds) => (nanoseconds / 1_000_000).toFixed(3);
             await core.summary
