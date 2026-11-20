@@ -102,7 +102,7 @@ jobs:
 
       - name: Build
         if: matrix.os != 'ubuntu-26.04'
-        run: cargo build --release --target ${{ matrix.target }} --features "standalone client" --verbose
+        run: cargo build --locked --release --target ${{ matrix.target }} --features "standalone client" --verbose
 
       - name: Build Linux
         if: matrix.os == 'ubuntu-26.04'
